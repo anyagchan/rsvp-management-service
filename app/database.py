@@ -12,7 +12,7 @@ DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT", "3306")
 DB_NAME = os.getenv("DB_NAME")
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = f"mysql+pymysql://root:dbuserdbuser@rsvp-management-service.cyswkjclynii.us-east-1.rds.amazonaws.com:3306/rsvp_management"
 
 engine = create_engine(DATABASE_URL)
 
