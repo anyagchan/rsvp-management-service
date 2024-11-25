@@ -1,0 +1,40 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+env/
+
+# Package distribution
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# Pytest cache
+.pytest_cache/
+
+# MySQL database files (if any)
+*.sql
+
+# Other temporary files
+*.DS_Store  # macOS specific
