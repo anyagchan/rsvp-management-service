@@ -11,7 +11,9 @@ app = FastAPI()
 ### middleware logging 
 import logging
 import time
+import uuid
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 logging.basicConfig(
     filename="app.log",               
     level=logging.INFO,                
@@ -19,17 +21,27 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 logger = logging.getLogger(__name__)
-logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
+
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        request_id = uuid.uuid4()
         request_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        logger.info(f"Incoming request: {request.method} {request.url.path}")
+        logger.info(f"[{request_id}] Request received at {request_time}: {request.method} {request.url.path}")
+
+        start_time = time.time()
         response = await call_next(request)
+        process_time = time.time() - start_time
+
         response_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        logger.info(f"Completed response: {response.status_code} {request.url.path}")
+        logger.info(
+        f"[{request_id}] Response completed at {response_time}: "
+        f"Status {response.status_code} {request.url.path}, "
+        f"Processing time: {process_time:.2f} seconds"
+        )
         return response
 app.add_middleware(LoggingMiddleware)
+
 ### 
 
 # Dependency to get the database session
