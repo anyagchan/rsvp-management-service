@@ -8,16 +8,16 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# allow requests from frontend origin --> CORS errors 
-from fastapi.middleware.cors import CORSMiddleware
+# # allow requests from frontend origin --> CORS errors 
+# from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow your frontend's origin
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["http://localhost:3000"],  # Allow your frontend's origin
+#     allow_credentials=True,
+#     allow_methods=["*"],  # Allow all HTTP methods
+#     allow_headers=["*"],  # Allow all headers
+# )
 
 ### middleware logging 
 import logging
