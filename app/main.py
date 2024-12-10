@@ -8,6 +8,17 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+# # allow requests from frontend origin --> CORS errors 
+# from fastapi.middleware.cors import CORSMiddleware
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["http://localhost:3000"],  # Allow your frontend's origin
+#     allow_credentials=True,
+#     allow_methods=["*"],  # Allow all HTTP methods
+#     allow_headers=["*"],  # Allow all headers
+# )
+
 ### middleware logging 
 import logging
 import time
@@ -88,3 +99,106 @@ def delete_rsvp(rsvp_id: int, db: Session = Depends(get_db)):
     if not deleted_rsvp:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSVP not found")
     return deleted_rsvp
+
+## CQRS , graphql stuff using ariadne 
+from ariadne import QueryType, make_executable_schema, graphql_sync, ObjectType
+from ariadne.asgi import GraphQL
+
+#ß GraphQL schema
+type_defs = """
+type User {
+  id: Int!
+  name: String
+  email: String
+}
+
+type RSVP {
+  id: Int!
+  event_id: Int!
+  event_name: String
+  name: String
+  email: String
+  status: String
+  user: User
+}
+
+type Query {
+  rsvps: [RSVP]
+  rsvp(id: Int!): RSVP
+  users: [User]
+  user(id: Int!): User
+}
+"""
+
+query = QueryType()
+
+from sqlalchemy.orm import joinedload
+
+# RSVP resolvers
+@query.field("rsvps")
+def resolve_rsvps(*_):
+    db = SessionLocal()
+    try:
+        # Eagerly load 'user' relationship, prevent lazy loading issues
+        return db.query(models.RSVP).options(joinedload(models.RSVP.user)).all()
+    finally:
+        db.close()
+
+@query.field("rsvp")
+def resolve_rsvp(*_, id):
+    db = SessionLocal()
+    try:
+        r = db.query(models.RSVP).options(joinedload(models.RSVP.user)).filter(models.RSVP.id == id).first()
+        return r
+    finally:
+        db.close()
+
+# User resolvers
+@query.field("users")
+def resolve_users(*_):
+    db = SessionLocal()
+    try:
+        # Eagerly load 'rsvps' relationship
+        return db.query(models.User).options(joinedload(models.User.rsvps)).all()
+    finally:
+        db.close()
+
+
+@query.field("user")
+def resolve_user(*_, id):
+    db = SessionLocal()
+    try:
+        # Eagerly load 'rsvps' relationship for a specific user
+        return db.query(models.User).options(joinedload(models.User.rsvps)).filter(models.User.id == id).first()
+    finally:
+        db.close()
+
+rsvp_obj = ObjectType("RSVP")
+user_obj = ObjectType("User")
+
+@rsvp_obj.field("user")
+def resolve_rsvp_user(obj, *_):
+    return obj.user  
+
+schema = make_executable_schema(type_defs, query, rsvp_obj, user_obj)
+
+# Add GraphQL endpoint at /graphql
+@app.api_route("/graphql", methods=["GET", "POST"])
+async def graphql_endpoint(request: Request):
+    # Handle GET requests
+    if request.method == "GET":
+        query = request.query_params.get("query")
+        if not query:
+            return {"error": "No query provided"}
+        data = {"query": query}
+    else:
+        # Handle POST requests
+        data = await request.json()
+
+    success, result = graphql_sync(
+        schema,
+        data,
+        context_value={},
+        debug=False  
+    )
+    return result
