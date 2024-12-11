@@ -2,11 +2,21 @@ from fastapi import Depends, FastAPI, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import SessionLocal, engine
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # Create database tables if they don't exist
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can specify allowed origins here
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 ### middleware logging 
 import logging
