@@ -12,6 +12,7 @@ app = FastAPI()
 
 #connection to events:
 EVENT_SERVICE_URL = "http://0.0.0.0:8001"
+COMPOSITE_SERVICE_URL = "http://0.0.0.0:8003"
 
 
 # Dependency to get the database session
@@ -32,12 +33,19 @@ async def create_event_rsvp(event_id: int, rsvp: schemas.RSVPCreate, db: Session
         # Fetch the existing event data
         event_response = await client.get(f"{EVENT_SERVICE_URL}/events/{event_id}")
         event_data = event_response.json()
+        
+        #Fetch Composite Infomration
+        composite_response = await client.get(f"{COMPOSITE_SERVICE_URL}/event/{event_id}/rsvps")
+        composite_data = composite_response.json()
 
         rsvp.event_id = event_id
         rsvp.event_name = event_data.get("name", "Event Name Placeholder")
 
         # Create RSVP in our database
         created_rsvp = crud.create_rsvp(db=db, rsvp=rsvp)
+        
+        with open("output.txt", "w") as file:
+            json.dump(composite_data, file, indent=4)  # Writing JSON data with indentation for readability
 
         # Update RSVP count and structure the updated data
         updated_data = {
@@ -49,11 +57,9 @@ async def create_event_rsvp(event_id: int, rsvp: schemas.RSVPCreate, db: Session
             "time": (str) (event_data['time']),
             "location": event_data['location'],
             "category": event_data['category'],
-            "rsvpCount": event_data['rsvpCount'] + 1
+            "rsvpCount": len(composite_data["RSVP_LIST"])
         }
         
-        with open("output.txt", "w") as file:
-            json.dump(updated_data, file, indent=4)  # Writing JSON data with indentation for readability
             
         update_response = await client.put(f"{EVENT_SERVICE_URL}/events/{event_id}", json=updated_data)
         
