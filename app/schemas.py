@@ -2,8 +2,7 @@ from pydantic import BaseModel
 
 class RSVPBase(BaseModel):
     event_id: int
-    event_name: str  # This should be stored directly as per your table structure
-    name: str
+    event_name: str  
     email: str
     status: str
 
