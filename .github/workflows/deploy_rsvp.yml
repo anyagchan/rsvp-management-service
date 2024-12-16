@@ -1,0 +1,40 @@
+name: Deploy RSVP Service to EC2
+
+on:
+  push:
+    branches:
+      - main  # Trigger deployment when pushing to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the latest code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set Up SSH Key
+      - name: Set up SSH Key
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > ssh_key.pem
+          chmod 400 ssh_key.pem
+
+      # Step 3: Deploy to EC2 (Without Docker)
+      - name: Deploy to EC2
+        run: |
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.AWS_EC2_IP }} << 'EOF'
+          # Navigate to the app directory on EC2
+          cd /home/ec2-user/rsvp-management-service || exit
+
+          # Pull the latest code from the repository
+          git pull origin main
+
+          # Install dependencies
+          pip install --no-cache-dir -r requirements.txt
+
+          # Restart the application (assumes FastAPI with uvicorn)
+          pkill -f "uvicorn" || true
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          EOF
+
