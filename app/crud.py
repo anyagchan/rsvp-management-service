@@ -1,32 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 
-def add_hateoas_to_rsvp(rsvp: dict):
-    """Add HATEOAS links to RSVP dictionary."""
-    return {
-        **rsvp,
-        "_links": {
-            "self": f"/rsvps/{rsvp['id']}",
-            "update": f"/rsvps/{rsvp['id']}",
-            "delete": f"/rsvps/{rsvp['id']}",
-            "event_rsvps": f"/events/{rsvp['event_id']}/rsvps/"
-        }
-    }
-
-def get_rsvps_with_links(db: Session, event_id: int, skip: int = 0, limit: int = 100):
-    """Fetch RSVPs for an event and add HATEOAS links."""
-    rsvps = db.query(models.RSVP).filter(models.RSVP.event_id == event_id).offset(skip).limit(limit).all()
-    return [
-        add_hateoas_to_rsvp({
-            "id": rsvp.id,
-            "event_id": rsvp.event_id,
-            "event_name": rsvp.event_name,
-            "name": rsvp.name,
-            "email": rsvp.email,
-            "status": rsvp.status
-        }) for rsvp in rsvps
-    ]
-
 def get_event(db: Session, event_id: int):
     return db.query(models.Event).filter(models.Event.id == event_id).first()  # Ensure this exists
 
