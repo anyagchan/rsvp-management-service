@@ -21,6 +21,12 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > ssh_key.pem
           chmod 400 ssh_key.pem
 
+      - name: Debug SSH Command
+        run: |
+          echo "Connecting as ${{ secrets.SSH_USER }}@${{ secrets.AWS_EC2_IP }}"
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.AWS_EC2_IP }} exit
+
+
       # Step 3: Deploy to EC2 (Without Docker)
       - name: Deploy to EC2
         run: |
