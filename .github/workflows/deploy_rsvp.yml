@@ -24,13 +24,12 @@ jobs:
       - name: Debug SSH Command
         run: |
           echo "Connecting as ${{ secrets.SSH_USER }}@${{ secrets.AWS_EC2_IP }}"
-          ssh -i ssh_key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.AWS_EC2_IP }} exit
 
 
       # Step 3: Deploy to EC2 (Without Docker)
       - name: Deploy to EC2
         run: |
-          ssh -i ssh_key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.AWS_EC2_IP }} << 'EOF'
+          ssh -i ssh_key.pem -o StrictHostKeyChecking=no ec2-user@$34.232.2.215 << 'EOF'
           # Navigate to the app directory on EC2
           cd /home/ec2-user/rsvp-management-service || exit
 
