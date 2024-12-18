@@ -18,7 +18,7 @@ import json
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-lambda_client = boto3.client('lambda')
+# lambda_client = boto3.client('lambda')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -119,27 +119,27 @@ async def create_event_rsvp(
         update_data = {"rsvpCount": updated_rsvp_count}
         await call_protected_service(token, update_url, 'PUT', update_data)
 
-        lambda_payload = {
-            "event_id": event_id,
-            "name": rsvp.name,
-            "email": rsvp.email,
-        }
+        # lambda_payload = {
+        #     "event_id": event_id,
+        #     "name": rsvp.name,
+        #     "email": rsvp.email,
+        # }
         
         # Invoke the Lambda function
-        try:
-            response = lambda_client.invoke(
-                FunctionName='RSVPFunction',  # Replace with your actual Lambda function name
-                InvocationType='RequestResponse',
-                Payload=json.dumps(lambda_payload),
-            )
+        # try:
+        #     response = lambda_client.invoke(
+        #         FunctionName='RSVPFunction',  # Replace with your actual Lambda function name
+        #         InvocationType='RequestResponse',
+        #         Payload=json.dumps(lambda_payload),
+        #     )
             
-            # Read the response from the Lambda function
-            lambda_response_payload = json.loads(response['Payload'].read())
-            print(f"Lambda response: {lambda_response_payload}")
+        #     # Read the response from the Lambda function
+        #     lambda_response_payload = json.loads(response['Payload'].read())
+        #     print(f"Lambda response: {lambda_response_payload}")
             
-        except Exception as e:
-            print(f"Error invoking Lambda: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to invoke Lambda function")
+        # except Exception as e:
+        #     print(f"Error invoking Lambda: {str(e)}")
+        #     raise HTTPException(status_code=500, detail="Failed to invoke Lambda function")
         
     else:
         raise HTTPException(
