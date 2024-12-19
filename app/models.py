@@ -1,4 +1,4 @@
-# models.py
+# app/models.py
 
 from sqlalchemy import Column, Integer, String, Enum, TIMESTAMP, ForeignKey
 from sqlalchemy.orm import relationship
